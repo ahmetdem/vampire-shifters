@@ -716,7 +716,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0.00007354444}
   m_SizeDelta: {x: 0, y: 300}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &1046404438
@@ -1159,7 +1159,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 2077234080}
   m_Direction: 2
   m_Value: 0
-  m_Size: 1
+  m_Size: 0.99980885
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1320,8 +1320,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 444394518}
   m_HandleRect: {fileID: 444394517}
   m_Direction: 0
-  m_Value: 0
-  m_Size: 1
+  m_Value: 1
+  m_Size: 0.99999994
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1744,7 +1744,7 @@ GameObject:
   - component: {fileID: 2114902687}
   - component: {fileID: 2114902686}
   - component: {fileID: 2114902685}
-  - component: {fileID: 2114902684}
+  - component: {fileID: 2114902688}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -1752,18 +1752,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2114902684
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2114902683}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2b8dfd8481122cb3f8b10512610453df, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &2114902685
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1806,7 +1794,7 @@ MonoBehaviour:
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 2114902685}
-    PlayerPrefab: {fileID: 8233876315476385869, guid: b04600ada5083aed8858fcebad78e014, type: 3}
+    PlayerPrefab: {fileID: 4767376123689669050, guid: 6a7b5c7af227879328bf2dfdeb334bb7, type: 3}
     Prefabs:
       NetworkPrefabsLists:
       - {fileID: 11400000, guid: ee0465069ed56650f8b4f2f489579033, type: 2}
@@ -1843,6 +1831,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2114902688
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2114902683}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b8dfd8481122cb3f8b10512610453df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnRadius: 10
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
