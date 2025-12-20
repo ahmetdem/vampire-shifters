@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Text;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
-using Unity.Services.Core;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
@@ -10,6 +11,7 @@ using Unity.Services.Relay.Models;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Newtonsoft.Json;
 
 public class LobbyManager : MonoBehaviour
 {
@@ -22,6 +24,7 @@ public class LobbyManager : MonoBehaviour
 
     private Lobby currentLobby;
     private float heartbeatTimer;
+    private const string GameSceneName = "02_GameArena";
 
     private void Start()
     {
@@ -31,41 +34,101 @@ public class LobbyManager : MonoBehaviour
 
     private void Update()
     {
+        HandleLobbyHeartbeat();
+    }
+
+    private async void HandleLobbyHeartbeat()
+    {
         if (currentLobby != null)
         {
             heartbeatTimer -= Time.deltaTime;
             if (heartbeatTimer < 0f)
             {
                 heartbeatTimer = 15f;
-                LobbyService.Instance.SendHeartbeatPingAsync(currentLobby.Id);
+                await LobbyService.Instance.SendHeartbeatPingAsync(currentLobby.Id);
             }
         }
+    }
+
+    // Prepare the payload (Name + AuthID) for Connection Approval
+    private void SetConnectionPayload()
+    {
+        var payload = new ConnectionPayload
+        {
+            playerName = PlayerPrefs.GetString("PlayerName", "Unknown"),
+            authId = AuthenticationService.Instance.PlayerId
+        };
+
+        string payloadJson = JsonUtility.ToJson(payload);
+        byte[] payloadBytes = Encoding.UTF8.GetBytes(payloadJson);
+
+        NetworkManager.Singleton.NetworkConfig.ConnectionData = payloadBytes;
     }
 
     private async void CreateLobby()
     {
         try
         {
-            Allocation allocation = await Relay.Instance.CreateAllocationAsync(3);
+            // 1. Create Relay
+            Allocation allocation = await Relay.Instance.CreateAllocationAsync(4); // 4 players total
             string joinCode = await Relay.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
+            // 2. Create Lobby with Join Code
             CreateLobbyOptions options = new CreateLobbyOptions();
             options.Data = new Dictionary<string, DataObject>
             {
                 { "joinCode", new DataObject(DataObject.VisibilityOptions.Member, joinCode) }
             };
 
-            currentLobby = await LobbyService.Instance.CreateLobbyAsync("My Game Lobby", 4, options);
+            // Quest 3: Host Beacon (Lobby Name includes Player Name)
+            string playerName = PlayerPrefs.GetString("PlayerName", "Host");
+            currentLobby = await LobbyService.Instance.CreateLobbyAsync($"{playerName}'s Lobby", 4, options);
 
+            // 3. Setup Transport
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
             transport.SetRelayServerData(new Unity.Networking.Transport.Relay.RelayServerData(allocation, "dtls"));
 
-            NetworkManager.Singleton.StartHost();
+            // 4. Set Payload and Start Host
+            SetConnectionPayload();
+
+            if (NetworkManager.Singleton.StartHost())
+            {
+                // Host loads the Game Arena. Clients will follow automatically.
+                NetworkManager.Singleton.SceneManager.LoadScene(GameSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Create Lobby Failed: {e.Message}");
+        }
+    }
+
+    private async void JoinLobby(string lobbyId)
+    {
+        try
+        {
+            // 1. Join Lobby
+            Lobby lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId);
+            string joinCode = lobby.Data["joinCode"].Value;
+
+            // 2. Join Relay
+            JoinAllocation joinAllocation = await Relay.Instance.JoinAllocationAsync(joinCode);
+
+            // 3. Setup Transport
+            var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+            transport.SetRelayServerData(new Unity.Networking.Transport.Relay.RelayServerData(joinAllocation, "dtls"));
+
+            // 4. Set Payload and Start Client
+            SetConnectionPayload();
+            NetworkManager.Singleton.StartClient();
+
+            // Client does NOT use SceneManager.LoadScene.
+            // NGO automatically syncs the client to the Host's active scene.
             lobbyPanel.SetActive(false);
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            Debug.LogError(e);
+            Debug.LogError($"Join Lobby Failed: {e.Message}");
         }
     }
 
@@ -87,35 +150,16 @@ public class LobbyManager : MonoBehaviour
             {
                 GameObject newItem = Instantiate(lobbyItemPrefab, container);
                 TMP_Text[] texts = newItem.GetComponentsInChildren<TMP_Text>();
+                // Layout: [Lobby Name] [Player Count]
                 texts[0].text = lobby.Name;
                 texts[1].text = $"{lobby.Players.Count}/{lobby.MaxPlayers}";
 
                 newItem.GetComponentInChildren<Button>().onClick.AddListener(() => JoinLobby(lobby.Id));
             }
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            Debug.LogError(e);
-        }
-    }
-
-    private async void JoinLobby(string lobbyId)
-    {
-        try
-        {
-            Lobby lobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobbyId);
-            string joinCode = lobby.Data["joinCode"].Value;
-
-            JoinAllocation joinAllocation = await Relay.Instance.JoinAllocationAsync(joinCode);
-            var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            transport.SetRelayServerData(new Unity.Networking.Transport.Relay.RelayServerData(joinAllocation, "dtls"));
-
-            NetworkManager.Singleton.StartClient();
-            lobbyPanel.SetActive(false);
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError(e);
+            Debug.LogError($"Refresh Failed: {e.Message}");
         }
     }
 }
