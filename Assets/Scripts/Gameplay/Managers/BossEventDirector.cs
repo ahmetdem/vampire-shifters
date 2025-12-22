@@ -1,0 +1,163 @@
+using System.Collections;
+using Unity.Netcode;
+using UnityEngine;
+using Cinemachine; // Required for Camera switching
+
+public class BossEventDirector : NetworkBehaviour
+{
+    public static BossEventDirector Instance;
+
+    [Header("Setup")]
+    [SerializeField] private Transform arenaSpawnPoint;
+    [SerializeField] private GameObject bossPrefab;
+
+    // NEW: Reference to the main spawner so we can disable it
+    [SerializeField] private EnemySpawner mainEnemySpawner;
+
+    // NEW: Reference to a static camera that covers the whole arena
+    [SerializeField] private CinemachineVirtualCamera bossArenaCamera;
+
+    [Header("Settings")]
+    public float bossTimerDuration = 300f;
+    private float currentTimer;
+    private bool eventStarted = false;
+
+    private void Awake()
+    {
+        Instance = this;
+        // Ensure the boss camera is off by default
+        if (bossArenaCamera != null) bossArenaCamera.gameObject.SetActive(false);
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer) currentTimer = 0f;
+    }
+
+    private void Update()
+    {
+        if (!IsServer || eventStarted) return;
+
+        currentTimer += Time.deltaTime;
+        if (currentTimer >= bossTimerDuration)
+        {
+            StartBossEvent();
+        }
+    }
+
+    public void ForceStartEvent()
+    {
+        if (IsServer && !eventStarted) StartBossEvent();
+    }
+
+    private void StartBossEvent()
+    {
+        eventStarted = true;
+        Debug.Log(">>> BOSS EVENT STARTED <<<");
+
+        // 1. STOP NORMAL ENEMY SPAWNS
+        if (mainEnemySpawner != null)
+        {
+            // You need to add this public method to your EnemySpawner script!
+            mainEnemySpawner.StopSpawning();
+        }
+
+        // 2. TELEPORT & FIX CAMERA (Client Side)
+        TeleportAndSwitchCameraClientRpc(arenaSpawnPoint.position);
+
+        // 3. SPAWN BOSS
+        SpawnBoss();
+    }
+
+    [ClientRpc]
+    private void TeleportAndSwitchCameraClientRpc(Vector3 pos)
+    {
+        // A. Enable the Boss Camera
+        // Because it has higher priority (setup below), Cinemachine will snap to it
+        if (bossArenaCamera != null)
+        {
+            bossArenaCamera.gameObject.SetActive(true);
+        }
+
+        // B. Teleport Local Player
+        // We only move the player belonging to this specific client
+        if (NetworkManager.Singleton.LocalClient != null &&
+            NetworkManager.Singleton.LocalClient.PlayerObject != null)
+        {
+            var player = NetworkManager.Singleton.LocalClient.PlayerObject;
+
+            if (player.TryGetComponent(out Rigidbody2D rb)) rb.velocity = Vector2.zero;
+            player.transform.position = pos;
+        }
+    }
+
+    private void SpawnBoss()
+    {
+        Vector3 bossPos = arenaSpawnPoint.position + new Vector3(0, 5, 0);
+        GameObject boss = Instantiate(bossPrefab, bossPos, Quaternion.identity);
+        boss.GetComponent<NetworkObject>().Spawn();
+    }
+
+    [ClientRpc]
+    public void ResetCameraClientRpc()
+    {
+        // Turn off the boss camera so the default follow camera takes priority again
+        if (bossArenaCamera != null)
+        {
+            bossArenaCamera.gameObject.SetActive(false);
+        }
+    }
+
+    public void OnBossDefeated()
+    {
+        // 1. Logic runs only on Server
+        if (!IsServer) return;
+
+        Debug.Log(">>> BOSS DEFEATED! RETURNING TO FOREST <<<");
+
+        if (mainEnemySpawner != null)
+        {
+            mainEnemySpawner.StartSpawning();
+        }
+
+        // 2. Loop through players on the Server
+        foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
+        {
+            // Server calculates a random spot for this specific player
+            Vector3 targetPos = ConnectionHandler.Instance.GetRandomSpawnPosition();
+
+            // Server whispers to this client: "Go to this specific spot"
+            ClientRpcParams clientRpcParams = new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams
+                {
+                    TargetClientIds = new ulong[] { client.ClientId }
+                }
+            };
+
+            ReturnToForestClientRpc(targetPos, clientRpcParams);
+        }
+    }
+
+    [ClientRpc]
+    private void ReturnToForestClientRpc(Vector3 targetPos, ClientRpcParams clientRpcParams = default)
+    {
+        // Client just follows orders. No math, no checking lists.
+
+        if (bossArenaCamera != null)
+        {
+            bossArenaCamera.gameObject.SetActive(false);
+        }
+
+        if (NetworkManager.Singleton.LocalClient != null &&
+            NetworkManager.Singleton.LocalClient.PlayerObject != null)
+        {
+            var player = NetworkManager.Singleton.LocalClient.PlayerObject;
+
+            if (player.TryGetComponent(out Rigidbody2D rb)) rb.velocity = Vector2.zero;
+
+            // Move to the spot the server picked
+            player.transform.position = targetPos;
+        }
+    }
+}
