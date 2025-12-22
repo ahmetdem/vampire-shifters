@@ -5,20 +5,17 @@ using UnityEngine;
 public class WeaponController : NetworkBehaviour
 {
     [Header("Progression")]
-    public List<WeaponData> allWeaponsPool;
+    // FIX: Change 'WeaponData' to 'UpgradeData'
+    public List<UpgradeData> allUpgradesPool;
+    public float globalDamageMultiplier = 1.0f;
 
-    // Helper to know what we already have (to avoid duplicates later)
     private List<int> unlockedWeaponIndices = new List<int>();
-
-    // List of equipped weapon behaviors
     private List<BaseWeapon> activeWeapons = new List<BaseWeapon>();
 
-    // For testing: Drag a WeaponData here to start with it
     [SerializeField] private WeaponData startingWeapon;
 
     public override void OnNetworkSpawn()
     {
-        // Only Server runs combat logic (authoritative)
         if (IsServer && startingWeapon != null)
         {
             AddWeapon(startingWeapon);
@@ -29,7 +26,6 @@ public class WeaponController : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        // Run the cooldown loop for all weapons
         foreach (var weapon in activeWeapons)
         {
             weapon.WeaponUpdate();
@@ -39,21 +35,33 @@ public class WeaponController : NetworkBehaviour
     [ServerRpc]
     public void RequestUnlockWeaponServerRpc(int index)
     {
-        // Validation: Ensure index is valid
-        if (index < 0 || index >= allWeaponsPool.Count) return;
+        // This now works because the list type matches the variable type
+        if (index < 0 || index >= allUpgradesPool.Count) return;
 
-        // If we want to prevent duplicates, check here:
-        if (unlockedWeaponIndices.Contains(index)) return;
+        UpgradeData selectedUpgrade = allUpgradesPool[index];
 
-        // Apply the upgrade
-        WeaponData selectedWeapon = allWeaponsPool[index];
-        AddWeapon(selectedWeapon);
+        selectedUpgrade.Apply(gameObject);
 
-        // Track it
-        unlockedWeaponIndices.Add(index);
+        Debug.Log($"[Upgrade] Player {OwnerClientId} picked {selectedUpgrade.upgradeName}");
+
+        // After upgrade is applied, tell the client it's safe to resume
+        ResumeGameplayClientRpc();
     }
 
-    // Update your existing AddWeapon to be cleaner if needed
+    [ClientRpc]
+    private void ResumeGameplayClientRpc()
+    {
+        if (!IsOwner) return;
+
+        // Re-enable movement/actions here if you disabled them
+        // PlayerMovement.Instance.SetEnabled(true);
+    }
+
+    public void IncreaseGlobalDamage(float amount)
+    {
+        globalDamageMultiplier += amount;
+    }
+
     public void AddWeapon(WeaponData newData)
     {
         if (newData == null) return;
@@ -67,13 +75,8 @@ public class WeaponController : NetworkBehaviour
         if (type != null)
         {
             BaseWeapon newWeapon = (BaseWeapon)weaponObj.AddComponent(type);
-
-            // Ensure you are passing BOTH the data and the NetworkObjectId
-            // This is where it likely failed before
             newWeapon.Initialize(newData, NetworkObjectId);
-
             activeWeapons.Add(newWeapon);
-            Debug.Log($"[WeaponController] Initialized {newData.weaponName}");
         }
     }
 }

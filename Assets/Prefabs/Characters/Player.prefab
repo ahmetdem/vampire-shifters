@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5551938042213902016}
   - component: {fileID: 5391406763782360341}
   - component: {fileID: 3193609419904044212}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: PlayerName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -154,9 +154,9 @@ GameObject:
   - component: {fileID: -7554878226443166949}
   - component: {fileID: 3113784856879174944}
   - component: {fileID: -4208716419324339616}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -278,7 +278,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!58 &1057409017277812537
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -448,6 +448,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1707a9c3d00822472a58622d04a46f27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHealth: 100
   currentHealth:
     m_InternalValue: 100
 --- !u!114 &-4208716419324339616
@@ -462,9 +463,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec54c9d00de502c73895f3d98c649ff2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  allWeaponsPool:
-  - {fileID: 11400000, guid: f014cbad5aa8cfe1cac4c79396326941, type: 2}
-  - {fileID: 11400000, guid: 34fdc6170b556c9a497a9cf05b5c4573, type: 2}
+  allUpgradesPool:
+  - {fileID: 11400000, guid: f96d97592f772cdc4b3a8f8e86098b0f, type: 2}
+  - {fileID: 11400000, guid: bf9f32727cc098d31a687a22b0a1d429, type: 2}
+  - {fileID: 11400000, guid: 2da31b56c49c669178dba5ea3a709285, type: 2}
+  - {fileID: 11400000, guid: a7c515068c30a4374aa74d9620f480a3, type: 2}
+  - {fileID: 11400000, guid: 7c6f7a8a4fa7b26ca8ac0e19cf5900c9, type: 2}
+  globalDamageMultiplier: 1
   startingWeapon: {fileID: 11400000, guid: f014cbad5aa8cfe1cac4c79396326941, type: 2}
 --- !u!1 &8185655984755733289
 GameObject:
@@ -478,7 +483,7 @@ GameObject:
   - component: {fileID: 7961297580920692773}
   - component: {fileID: 54800443624931355}
   - component: {fileID: 4635468919724672}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -27,31 +27,51 @@ public class LevelUpUI : MonoBehaviour
         localPlayerController = controller;
         currentOptions.Clear();
 
-        // 1. Pick 3 Random Weapons from the Player's Pool
-        // (Logic simplified: just picking random indices for now)
-        int poolSize = controller.allWeaponsPool.Count;
+        // 1. Create a list of all valid indices [0, 1, 2, 3...]
+        List<int> availableIndices = new List<int>();
+        for (int i = 0; i < controller.allUpgradesPool.Count; i++)
+        {
+            // Optional: You can add an "if" here to skip maxed-out weapons later
+            availableIndices.Add(i);
+        }
 
+        // 2. Shuffle the list (Fisher-Yates Shuffle)
+        // This ensures we pick unique items without duplicates
+        for (int i = 0; i < availableIndices.Count; i++)
+        {
+            int temp = availableIndices[i];
+            int randomIndex = Random.Range(i, availableIndices.Count);
+            availableIndices[i] = availableIndices[randomIndex];
+            availableIndices[randomIndex] = temp;
+        }
+
+        // 3. Assign Buttons
         for (int i = 0; i < optionButtons.Length; i++)
         {
-            if (poolSize == 0) break;
+            // If we ran out of upgrades (e.g. only have 2 items but 3 buttons), hide the button
+            if (i >= availableIndices.Count)
+            {
+                optionButtons[i].gameObject.SetActive(false);
+                continue;
+            }
 
-            int randomIndex = Random.Range(0, poolSize);
-            // TODO: In the future, add logic here to ensure we don't pick the same one twice
+            // Otherwise, show the button
+            optionButtons[i].gameObject.SetActive(true);
 
-            currentOptions.Add(randomIndex);
+            int pickedIndex = availableIndices[i]; // Pick from the shuffled list
+            UpgradeData data = controller.allUpgradesPool[pickedIndex];
 
-            // 2. Update the UI Text
-            WeaponData data = controller.allWeaponsPool[randomIndex];
-            optionTexts[i].text = data.weaponName;
+            // Update Text
+            optionTexts[i].text = $"{data.upgradeName}\n<size=60%>{data.description}</size>";
 
-            // Setup the Button Listener
-            int indexToSend = randomIndex; // Capture for lambda
+            // Setup Click Listener
+            int indexToSend = pickedIndex;
             optionButtons[i].onClick.RemoveAllListeners();
             optionButtons[i].onClick.AddListener(() => SelectUpgrade(indexToSend));
         }
 
-        // 3. Show Panel
         panel.SetActive(true);
+        SetPlayerInput(false);
     }
 
     private void SelectUpgrade(int weaponIndex)
@@ -64,5 +84,13 @@ public class LevelUpUI : MonoBehaviour
 
         // 5. Hide Panel
         panel.SetActive(false);
+        SetPlayerInput(true);
+    }
+
+    private void SetPlayerInput(bool enabled)
+    {
+        // This looks for your local player's movement and stops it
+        if (localPlayerController.TryGetComponent(out PlayerMovement move)) move.enabled = enabled;
+        localPlayerController.enabled = enabled; // Stops the WeaponController from firing
     }
 }

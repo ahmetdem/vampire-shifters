@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d286dade3754a206a898a818b3daa1b, type: 3}
   m_Name: Thunderstrike
   m_EditorClassIdentifier: 
-  weaponName: 
+  weaponName: Thunder Strike
   icon: {fileID: 0}
   baseDamage: 50
   baseCooldown: 1.5

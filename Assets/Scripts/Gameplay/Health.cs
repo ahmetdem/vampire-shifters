@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Health : NetworkBehaviour
 {
+    [SerializeField] private int maxHealth = 100;
     public NetworkVariable<int> currentHealth = new NetworkVariable<int>(100);
 
     public void TakeDamage(int damage)
@@ -36,5 +37,22 @@ public class Health : NetworkBehaviour
             Debug.Log($"[Health] Enemy {NetworkObjectId} Died.");
             GetComponent<NetworkObject>().Despawn(true);
         }
+    }
+
+    // Add this anywhere inside the class
+    public void Heal(int amount)
+    {
+        if (!IsServer) return;
+
+        // Use the variable name defined above
+        currentHealth.Value = Mathf.Clamp(currentHealth.Value + amount, 0, maxHealth);
+    }
+
+    public void IncreaseMaxHealth(int amount)
+    {
+        if (!IsServer) return;
+
+        maxHealth += amount;
+        currentHealth.Value += amount;
     }
 }

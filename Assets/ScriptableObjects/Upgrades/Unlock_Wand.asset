@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1acbf78c4f83b8609449896a2fa453b, type: 3}
+  m_Name: Unlock_Wand
+  m_EditorClassIdentifier: 
+  upgradeName: Unlock Wand
+  description: Unlocks The Wand
+  weaponData: {fileID: 11400000, guid: f014cbad5aa8cfe1cac4c79396326941, type: 2}
