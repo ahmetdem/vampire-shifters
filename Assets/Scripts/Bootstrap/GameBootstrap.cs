@@ -17,42 +17,71 @@ public class GameBootstrap : MonoBehaviour
 
         // 1. Setup Initialization Options for unique player profiles
         InitializationOptions options = new InitializationOptions();
+        string profileToUse = "default";
 
 #if UNITY_EDITOR
         // If we are a ParrelSync clone, use its argument as profile
         if (ParrelSync.ClonesManager.IsClone())
         {
             string cloneName = ParrelSync.ClonesManager.GetArgument();
-            options.SetProfile(cloneName);
+            profileToUse = cloneName;
+            Debug.Log($"[Auth] ParrelSync clone detected, using profile: {profileToUse}");
         }
         else
         {
             // For different PCs/editors using the same project, generate a unique profile
-            // This ensures each machine gets its own player ID
-            string uniqueEditorId = PlayerPrefs.GetString("UniqueEditorProfileId", "");
-            if (string.IsNullOrEmpty(uniqueEditorId))
-            {
-                // Generate a new unique ID for this editor instance
-                // Sanitize device name: only keep alphanumeric and underscore, max 20 chars
-                string sanitizedDeviceName = SanitizeProfileName(SystemInfo.deviceName, 20);
-                string guidPart = System.Guid.NewGuid().ToString("N").Substring(0, 8); // "N" = no hyphens
-                uniqueEditorId = $"{sanitizedDeviceName}_{guidPart}";
-                PlayerPrefs.SetString("UniqueEditorProfileId", uniqueEditorId);
-                PlayerPrefs.Save();
-                Debug.Log($"[Auth] Generated new editor profile: {uniqueEditorId}");
-            }
-            options.SetProfile(uniqueEditorId);
-            Debug.Log($"[Auth] Using editor profile: {uniqueEditorId}");
+            profileToUse = GetOrCreateUniqueEditorProfile();
         }
+        
+        options.SetProfile(profileToUse);
+        Debug.Log($"[Auth] Attempting to initialize with profile: '{profileToUse}' (length: {profileToUse.Length})");
 #endif
 
-        // 2. Initialize with those options
-        await UnityServices.InitializeAsync(options);
+        // 2. Initialize with those options (with error recovery)
+        try
+        {
+            await UnityServices.InitializeAsync(options);
+            Debug.Log("[Auth] Unity Services initialized successfully!");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Auth] Initialization failed with profile '{profileToUse}': {e.Message}");
+            
+#if UNITY_EDITOR
+            // Clear the bad profile and try with a simple fallback
+            PlayerPrefs.DeleteKey("UniqueEditorProfileId");
+            PlayerPrefs.Save();
+            
+            string fallbackProfile = $"Player{Random.Range(10000, 99999)}";
+            Debug.Log($"[Auth] Retrying with fallback profile: {fallbackProfile}");
+            
+            options = new InitializationOptions();
+            options.SetProfile(fallbackProfile);
+            
+            try
+            {
+                await UnityServices.InitializeAsync(options);
+                // Save the working profile for next time
+                PlayerPrefs.SetString("UniqueEditorProfileId", fallbackProfile);
+                PlayerPrefs.Save();
+                Debug.Log($"[Auth] Fallback succeeded! Saved profile: {fallbackProfile}");
+            }
+            catch (System.Exception e2)
+            {
+                Debug.LogError($"[Auth] Fallback also failed: {e2.Message}");
+                Debug.LogError("[Auth] Full exception: " + e2.ToString());
+                return; // Cannot continue
+            }
+#else
+            return; // Cannot continue in build
+#endif
+        }
 
         // 3. Sign in (This will now result in a unique PlayerID per profile)
         if (!AuthenticationService.Instance.IsSignedIn)
         {
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
+            Debug.Log($"[Auth] Signed in with PlayerID: {AuthenticationService.Instance.PlayerId}");
         }
 
         // Load saved name
@@ -107,4 +136,35 @@ public class GameBootstrap : MonoBehaviour
         
         return result;
     }
+
+#if UNITY_EDITOR
+    /// <summary>
+    /// Gets or creates a unique profile ID for this editor instance.
+    /// </summary>
+    private string GetOrCreateUniqueEditorProfile()
+    {
+        string uniqueEditorId = PlayerPrefs.GetString("UniqueEditorProfileId", "");
+        
+        if (string.IsNullOrEmpty(uniqueEditorId))
+        {
+            // Generate a simple, safe profile name
+            // Only use alphanumeric - avoid any special chars completely
+            string sanitizedDeviceName = SanitizeProfileName(SystemInfo.deviceName, 15);
+            string guidPart = System.Guid.NewGuid().ToString("N").Substring(0, 8);
+            uniqueEditorId = $"{sanitizedDeviceName}{guidPart}";
+            
+            // Extra safety: ensure total length is reasonable (max 30)
+            if (uniqueEditorId.Length > 30)
+            {
+                uniqueEditorId = uniqueEditorId.Substring(0, 30);
+            }
+            
+            PlayerPrefs.SetString("UniqueEditorProfileId", uniqueEditorId);
+            PlayerPrefs.Save();
+            Debug.Log($"[Auth] Generated new editor profile: {uniqueEditorId}");
+        }
+        
+        return uniqueEditorId;
+    }
+#endif
 }
