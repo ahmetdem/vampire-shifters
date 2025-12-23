@@ -33,7 +33,10 @@ public class GameBootstrap : MonoBehaviour
             if (string.IsNullOrEmpty(uniqueEditorId))
             {
                 // Generate a new unique ID for this editor instance
-                uniqueEditorId = $"Editor_{SystemInfo.deviceName}_{System.Guid.NewGuid().ToString().Substring(0, 8)}";
+                // Sanitize device name: only keep alphanumeric and underscore, max 20 chars
+                string sanitizedDeviceName = SanitizeProfileName(SystemInfo.deviceName, 20);
+                string guidPart = System.Guid.NewGuid().ToString("N").Substring(0, 8); // "N" = no hyphens
+                uniqueEditorId = $"{sanitizedDeviceName}_{guidPart}";
                 PlayerPrefs.SetString("UniqueEditorProfileId", uniqueEditorId);
                 PlayerPrefs.Save();
                 Debug.Log($"[Auth] Generated new editor profile: {uniqueEditorId}");
@@ -75,5 +78,33 @@ public class GameBootstrap : MonoBehaviour
 
         // Load the Main Menu
         SceneManager.LoadScene("01_MainMenu");
+    }
+
+    /// <summary>
+    /// Sanitizes a string to only contain valid profile name characters (a-z, A-Z, 0-9, _)
+    /// </summary>
+    private static string SanitizeProfileName(string input, int maxLength)
+    {
+        if (string.IsNullOrEmpty(input)) return "Player";
+
+        var sb = new System.Text.StringBuilder();
+        foreach (char c in input)
+        {
+            // Only keep alphanumeric and underscore
+            if (char.IsLetterOrDigit(c) || c == '_')
+            {
+                sb.Append(c);
+            }
+        }
+
+        string result = sb.ToString();
+        
+        // Ensure we have at least something
+        if (string.IsNullOrEmpty(result)) result = "Player";
+        
+        // Limit length
+        if (result.Length > maxLength) result = result.Substring(0, maxLength);
+        
+        return result;
     }
 }
