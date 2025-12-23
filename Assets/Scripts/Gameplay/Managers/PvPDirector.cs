@@ -209,9 +209,23 @@ public class PvPDirector : NetworkBehaviour
     {
         if (!IsServer) return;
 
+        // Prevent PvP in singleplayer - need at least 2 players
+        if (NetworkManager.Singleton.ConnectedClientsList.Count < 2)
+        {
+            Debug.Log("[PvP] Cannot start PvP - need at least 2 players!");
+            return;
+        }
+
         Debug.Log(">>> PVP MODE STARTED <<<");
         IsPvPActive.Value = true;
         timerActive = false;
+
+        // Disable boss arena camera if active (similar to how BossEventDirector handles PvP camera)
+        if (BossEventDirector.Instance != null)
+        {
+            BossEventDirector.Instance.isEventActive.Value = false; // Force boss event flag off
+            BossEventDirector.Instance.ResetCameraClientRpc();      // Force boss camera off
+        }
 
         if (mainEnemySpawner != null) mainEnemySpawner.StopSpawning();
 

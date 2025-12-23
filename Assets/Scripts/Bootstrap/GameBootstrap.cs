@@ -15,22 +15,38 @@ public class GameBootstrap : MonoBehaviour
     {
         connectButton.interactable = false;
 
-        // 1. Setup Initialization Options for ParrelSync
+        // 1. Setup Initialization Options for unique player profiles
         InitializationOptions options = new InitializationOptions();
 
 #if UNITY_EDITOR
-        // If we are a ParrelSync clone, use a unique profile name
+        // If we are a ParrelSync clone, use its argument as profile
         if (ParrelSync.ClonesManager.IsClone())
         {
             string cloneName = ParrelSync.ClonesManager.GetArgument();
             options.SetProfile(cloneName);
+        }
+        else
+        {
+            // For different PCs/editors using the same project, generate a unique profile
+            // This ensures each machine gets its own player ID
+            string uniqueEditorId = PlayerPrefs.GetString("UniqueEditorProfileId", "");
+            if (string.IsNullOrEmpty(uniqueEditorId))
+            {
+                // Generate a new unique ID for this editor instance
+                uniqueEditorId = $"Editor_{SystemInfo.deviceName}_{System.Guid.NewGuid().ToString().Substring(0, 8)}";
+                PlayerPrefs.SetString("UniqueEditorProfileId", uniqueEditorId);
+                PlayerPrefs.Save();
+                Debug.Log($"[Auth] Generated new editor profile: {uniqueEditorId}");
+            }
+            options.SetProfile(uniqueEditorId);
+            Debug.Log($"[Auth] Using editor profile: {uniqueEditorId}");
         }
 #endif
 
         // 2. Initialize with those options
         await UnityServices.InitializeAsync(options);
 
-        // 3. Sign in (This will now result in a unique PlayerID for the clone)
+        // 3. Sign in (This will now result in a unique PlayerID per profile)
         if (!AuthenticationService.Instance.IsSignedIn)
         {
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
