@@ -53,7 +53,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3463296540
+  GlobalObjectIdHash: 184791840
   InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
@@ -219,7 +219,7 @@ MonoBehaviour:
   coinPrefab: {fileID: 2166651954924859026, guid: b74e0c259daa362d88dd1dac093e21d6, type: 3}
   coinValue: 10
   dropChance: 1
-  rareItemPrefab: {fileID: 5318105536326779877, guid: 472da1df08e313ae694a307bba6c6e97, type: 3}
+  rareDropTable: []
   rareDropChance: 0.2
 --- !u!114 &-1997917228949462298
 MonoBehaviour:
@@ -233,9 +233,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36a28ec11bca17156bc7cb46d04929f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 100
+  maxHealth: 1000
   currentHealth:
-    m_InternalValue: 100
+    m_InternalValue: 1000
 --- !u!212 &3175959295347169575
 SpriteRenderer:
   m_ObjectHideFlags: 0
