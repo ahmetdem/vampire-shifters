@@ -36,6 +36,16 @@ public class EnemySpawner : NetworkBehaviour
     [Tooltip("Enable object pooling for better performance (requires EnemyPool in scene)")]
     [SerializeField] private bool useObjectPooling = true;
 
+    [Header("Map Bounds")]
+    [Tooltip("Enable to prevent spawning outside map boundaries")]
+    [SerializeField] private bool clampToMapBounds = true;
+    [Tooltip("Half-width of the map (e.g., 1000 for a 2000x2000 map)")]
+    [SerializeField] private float mapHalfWidth = 1000f;
+    [Tooltip("Half-height of the map (e.g., 1000 for a 2000x2000 map)")]
+    [SerializeField] private float mapHalfHeight = 1000f;
+    [Tooltip("Padding inside map edge to prevent spawning right at the boundary")]
+    [SerializeField] private float mapBoundsPadding = 5f;
+
     private float timer;
     private float timeElapsed;
     private bool isSpawningStopped = false;
@@ -218,6 +228,16 @@ public class EnemySpawner : NetworkBehaviour
         }
 
         spawnPos.z = 0; // Keep on game plane
+
+        // Clamp to map bounds if enabled
+        if (clampToMapBounds)
+        {
+            float maxX = mapHalfWidth - mapBoundsPadding;
+            float maxY = mapHalfHeight - mapBoundsPadding;
+            spawnPos.x = Mathf.Clamp(spawnPos.x, -maxX, maxX);
+            spawnPos.y = Mathf.Clamp(spawnPos.y, -maxY, maxY);
+        }
+
         return spawnPos;
     }
 

@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c5c30d118fc1cfc7886b126ca462065, type: 3}
+  m_Name: MainMapConfig
+  m_EditorClassIdentifier: 
+  mapWidth: 2000
+  mapHeight: 2000
+  noiseScale: 0.1
+  grassThreshold: 0.3
+  grassFillTile: {fileID: 11400000, guid: a22edfcd39ddb6f4da867a19a012edde, type: 2}
+  dirtFillTile: {fileID: 11400000, guid: 45de55ab782d2f8fd8bba10e85de9a68, type: 2}
+  grassEdgeTiles:
+  - {fileID: 11400000, guid: 54a0b438bd13c49f781981e8c0a44e30, type: 2}
+  - {fileID: 11400000, guid: d793654ad9356ea6b9f97fdc976e766a, type: 2}
+  - {fileID: 11400000, guid: bfb69fff08432238bb89a001b2581bbb, type: 2}
+  - {fileID: 11400000, guid: 3706706dfe6ee79f794b75d5e5e36af5, type: 2}
+  - {fileID: 11400000, guid: a22edfcd39ddb6f4da867a19a012edde, type: 2}
+  - {fileID: 11400000, guid: 78e8c2bb664309403b311f4d24010285, type: 2}
+  - {fileID: 11400000, guid: 8ff20efeac0c93379a0428124b1ac6be, type: 2}
+  - {fileID: 11400000, guid: 10831d18f4b1df4fc9ee0b1a95f6c268, type: 2}
+  - {fileID: 11400000, guid: 389e31a9c154bf07a8b2143ee1070058, type: 2}
+  groundVariationTiles: []
+  smallDecorations:
+  - {fileID: 11400000, guid: 6fbd0f5c814da672c8e82e919180bb42, type: 2}
+  - {fileID: 11400000, guid: 8398963eeee33ac9bacba83b27d4b545, type: 2}
+  - {fileID: 11400000, guid: d8ce081107981fe60865376e4a85383e, type: 2}
+  - {fileID: 11400000, guid: 059a291e10a248312ad942c75a163c4d, type: 2}
+  - {fileID: 11400000, guid: c528c1a3b3474f58bb806f6fc91a69dd, type: 2}
+  - {fileID: 11400000, guid: 91b908bccaaf37b6ea9a3ebb1d9a7064, type: 2}
+  - {fileID: 11400000, guid: 3ead3f8c1ccaf93c7a6dd867cdb663b9, type: 2}
+  - {fileID: 11400000, guid: 7a2fb6ad99e96f858b472e3f43e7ff7c, type: 2}
+  smallDecorationChance: 0.001
+  mediumDecorations:
+  - {fileID: 11400000, guid: 7e5b2550f2562ddc5beb8213541bf4a5, type: 2}
+  - {fileID: 11400000, guid: 2b94546bdb4703ab4b03a6f5dc788066, type: 2}
+  - {fileID: 11400000, guid: 39fd884124a464b18aa6c58d7719f06d, type: 2}
+  - {fileID: 11400000, guid: a243bc0474d94cc71a200bf09f551c7b, type: 2}
+  - {fileID: 11400000, guid: 2fec266ee77dda7e5924c3d8a281dd7d, type: 2}
+  - {fileID: 11400000, guid: 5735b6320df3b3163a00c0b0bd24fc19, type: 2}
+  - {fileID: 11400000, guid: 03bc5f2703691b7dea9fb8085933d029, type: 2}
+  - {fileID: 11400000, guid: 7c09ed32f5014db44ac44acc311dea98, type: 2}
+  - {fileID: 11400000, guid: c59d4e69e975827b4ad7f9907e67bdfa, type: 2}
+  - {fileID: 11400000, guid: 7e6c95ed1023bca51ad841cdc67429b5, type: 2}
+  - {fileID: 11400000, guid: df060734b5dac04078a06c56c5f29846, type: 2}
+  mediumDecorationChance: 0.005
+  largeDecorations:
+  - {fileID: 11400000, guid: efbf7868352d06d42b571bd9162b8458, type: 2}
+  - {fileID: 11400000, guid: 54b521dd5773ac0ca83081ccd3bea7e8, type: 2}
+  - {fileID: 11400000, guid: b21ccceda7a5f2ebd894774f035cf87c, type: 2}
+  - {fileID: 11400000, guid: f94817396c3d88fa3bce9def7a62756c, type: 2}
+  - {fileID: 11400000, guid: 6b3e2e17477525b59b347beb2ac9a24c, type: 2}
+  - {fileID: 11400000, guid: 5515af1af40d2656399ad06a465e312a, type: 2}
+  - {fileID: 11400000, guid: 18aa1e16e4216308fbf91e7c27b781f2, type: 2}
+  - {fileID: 11400000, guid: e70637ec86e8478ef9fc9874f065d910, type: 2}
+  - {fileID: 11400000, guid: f6c3b5769239fbd31a9c85da836af676, type: 2}
+  - {fileID: 11400000, guid: 5b8bf0ee66025fd25bf385a13a097868, type: 2}
+  - {fileID: 11400000, guid: 89e20372a173da6dda59f48a5859e73b, type: 2}
+  largeDecorationChance: 0.002
+  spawnSafeRadius: 5
