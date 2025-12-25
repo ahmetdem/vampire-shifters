@@ -42,6 +42,32 @@ public class LobbyBeat : MonoBehaviour
         }
     }
 
+    private void OnApplicationQuit()
+    {
+        DeleteLobby();
+    }
+
+    private void OnDestroy()
+    {
+        DeleteLobby();
+    }
+
+    private async void DeleteLobby()
+    {
+        if (string.IsNullOrEmpty(_lobbyId)) return;
+
+        try
+        {
+            await LobbyService.Instance.DeleteLobbyAsync(_lobbyId);
+            Debug.Log($"[LobbyBeat] Lobby {_lobbyId} deleted successfully.");
+            _lobbyId = null; // Prevent double-delete
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[LobbyBeat] Failed to delete lobby: {e.Message}");
+        }
+    }
+
     private void LogNetworkDiagnostics()
     {
         Debug.Log("=== [LobbyBeat] Network Diagnostics ===");
