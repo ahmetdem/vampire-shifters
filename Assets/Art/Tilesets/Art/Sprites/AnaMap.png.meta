@@ -45,10 +45,10 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 32
+  spritePixelsToUnits: 300
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -113,12 +113,12 @@ TextureImporter:
       name: AnaMap_1
       rect:
         serializedVersion: 2
-        x: 707
-        y: 1140
-        width: 343
-        height: 343
+        x: 729
+        y: 1168
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -134,12 +134,12 @@ TextureImporter:
       name: AnaMap_2
       rect:
         serializedVersion: 2
-        x: 1060
-        y: 1140
-        width: 343
-        height: 343
+        x: 1086
+        y: 1166
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -155,12 +155,12 @@ TextureImporter:
       name: AnaMap_3
       rect:
         serializedVersion: 2
-        x: 1412
-        y: 1140
-        width: 343
-        height: 343
+        x: 1438
+        y: 1166
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -176,12 +176,12 @@ TextureImporter:
       name: AnaMap_4
       rect:
         serializedVersion: 2
-        x: 1765
-        y: 1140
-        width: 343
-        height: 343
+        x: 1778
+        y: 1160
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -197,12 +197,12 @@ TextureImporter:
       name: AnaMap_6
       rect:
         serializedVersion: 2
-        x: 709
-        y: 777
-        width: 343
-        height: 343
+        x: 731
+        y: 799
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -218,12 +218,12 @@ TextureImporter:
       name: AnaMap_7
       rect:
         serializedVersion: 2
-        x: 1060
-        y: 779
-        width: 343
-        height: 343
+        x: 1086
+        y: 816
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -239,12 +239,12 @@ TextureImporter:
       name: AnaMap_8
       rect:
         serializedVersion: 2
-        x: 1412
-        y: 778
-        width: 343
-        height: 343
+        x: 1429
+        y: 795
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -260,12 +260,12 @@ TextureImporter:
       name: AnaMap_9
       rect:
         serializedVersion: 2
-        x: 1765
-        y: 778
-        width: 343
-        height: 343
+        x: 1782
+        y: 789
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -281,12 +281,12 @@ TextureImporter:
       name: AnaMap_11
       rect:
         serializedVersion: 2
-        x: 709
-        y: 416
-        width: 343
-        height: 343
+        x: 716
+        y: 423
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -302,12 +302,12 @@ TextureImporter:
       name: AnaMap_12
       rect:
         serializedVersion: 2
-        x: 1060
-        y: 416
-        width: 343
-        height: 343
+        x: 1075
+        y: 425
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -323,12 +323,12 @@ TextureImporter:
       name: AnaMap_13
       rect:
         serializedVersion: 2
-        x: 1414
-        y: 415
-        width: 343
-        height: 343
+        x: 1429
+        y: 430
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -344,12 +344,12 @@ TextureImporter:
       name: AnaMap_14
       rect:
         serializedVersion: 2
-        x: 1767
-        y: 416
-        width: 343
-        height: 343
+        x: 1776
+        y: 431
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -365,12 +365,12 @@ TextureImporter:
       name: AnaMap_16
       rect:
         serializedVersion: 2
-        x: 709
-        y: 51
-        width: 343
-        height: 343
+        x: 724
+        y: 77
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -386,12 +386,12 @@ TextureImporter:
       name: AnaMap_17
       rect:
         serializedVersion: 2
-        x: 1059
-        y: 50
-        width: 343
-        height: 343
+        x: 1083
+        y: 78
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -407,12 +407,12 @@ TextureImporter:
       name: AnaMap_18
       rect:
         serializedVersion: 2
-        x: 1414
-        y: 52
-        width: 343
-        height: 343
+        x: 1427
+        y: 67
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -428,12 +428,12 @@ TextureImporter:
       name: AnaMap_19
       rect:
         serializedVersion: 2
-        x: 1765
-        y: 52
-        width: 343
-        height: 343
+        x: 1782
+        y: 72
+        width: 300
+        height: 300
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
