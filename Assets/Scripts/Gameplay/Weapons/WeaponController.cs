@@ -11,6 +11,9 @@ public class WeaponController : NetworkBehaviour
 
     private List<int> unlockedWeaponIndices = new List<int>();
     private List<BaseWeapon> activeWeapons = new List<BaseWeapon>();
+    
+    // Track all applied upgrade indices for persistence and UI display
+    private List<int> appliedUpgradeHistory = new List<int>();
 
     [SerializeField] private WeaponData startingWeapon;
 
@@ -50,6 +53,9 @@ public class WeaponController : NetworkBehaviour
         UpgradeData selectedUpgrade = allUpgradesPool[index];
 
         selectedUpgrade.Apply(gameObject);
+        
+        // Track this upgrade in history
+        appliedUpgradeHistory.Add(index);
 
         Debug.Log($"[Upgrade] Player {OwnerClientId} picked {selectedUpgrade.upgradeName}");
 
@@ -68,8 +74,54 @@ public class WeaponController : NetworkBehaviour
 
         UpgradeData selectedUpgrade = allUpgradesPool[index];
         selectedUpgrade.Apply(gameObject);
+        
+        // Track this upgrade in history
+        appliedUpgradeHistory.Add(index);
 
         Debug.Log($"[Upgrade] Player {OwnerClientId} auto-selected: {selectedUpgrade.upgradeName}");
+    }
+    
+    /// <summary>
+    /// Get a copy of all applied upgrade indices. Used for saving upgrades on death.
+    /// </summary>
+    public List<int> GetAppliedUpgradeHistory()
+    {
+        return new List<int>(appliedUpgradeHistory);
+    }
+    
+    /// <summary>
+    /// Restore upgrades from a saved list (e.g., after respawn).
+    /// </summary>
+    public void RestoreUpgrades(List<int> upgradeIndices)
+    {
+        if (!IsServer) return;
+        
+        foreach (int index in upgradeIndices)
+        {
+            if (index >= 0 && index < allUpgradesPool.Count)
+            {
+                allUpgradesPool[index].Apply(gameObject);
+                appliedUpgradeHistory.Add(index);
+            }
+        }
+        
+        Debug.Log($"[Upgrade] Restored {upgradeIndices.Count} upgrades for Player {OwnerClientId}");
+    }
+    
+    /// <summary>
+    /// Get a list of all applied upgrade names for UI display.
+    /// </summary>
+    public List<string> GetAppliedUpgradeNames()
+    {
+        List<string> names = new List<string>();
+        foreach (int index in appliedUpgradeHistory)
+        {
+            if (index >= 0 && index < allUpgradesPool.Count)
+            {
+                names.Add(allUpgradesPool[index].upgradeName);
+            }
+        }
+        return names;
     }
 
     [ClientRpc]
