@@ -10,6 +10,9 @@ public class ConnectionHandler : MonoBehaviour
 
     private Dictionary<ulong, string> clientNames = new Dictionary<ulong, string>();
     private Dictionary<ulong, int> deathCounts = new Dictionary<ulong, int>();
+    private Dictionary<ulong, int> savedLevels = new Dictionary<ulong, int>(); // Persist levels across respawns
+    
+    private const int MAX_LEVEL_PENALTY = 10;
 
     [Header("Spawn Settings")]
     [Tooltip("Radius around center (0,0) where players can spawn")]
@@ -35,6 +38,20 @@ public class ConnectionHandler : MonoBehaviour
     {
         if (!deathCounts.ContainsKey(clientId)) deathCounts[clientId] = 0;
         deathCounts[clientId]++;
+
+        // Save player's level with penalty (max 10 levels lost)
+        int levelToSave = 1;
+        if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
+        {
+            if (client.PlayerObject != null && client.PlayerObject.TryGetComponent(out PlayerEconomy economy))
+            {
+                int currentLevel = economy.currentLevel.Value;
+                int penalty = Mathf.Min(currentLevel - 1, MAX_LEVEL_PENALTY); // Can't go below level 1
+                levelToSave = currentLevel - penalty;
+                Debug.Log($"[ConnectionHandler] Client {clientId} lost {penalty} levels. Saved level: {levelToSave}");
+            }
+        }
+        savedLevels[clientId] = levelToSave;
 
         // Quest 12: Respawn timer increases with every death
         float delay = 2.0f + (deathCounts[clientId] * 1.5f);
@@ -68,6 +85,16 @@ public class ConnectionHandler : MonoBehaviour
 
             GameObject newPlayer = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
             newPlayer.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+
+            // Restore saved level (with death penalty already applied)
+            if (savedLevels.TryGetValue(clientId, out int savedLevel) && savedLevel > 1)
+            {
+                if (newPlayer.TryGetComponent(out PlayerEconomy economy))
+                {
+                    economy.currentLevel.Value = savedLevel;
+                    Debug.Log($"[ConnectionHandler] Restored Client {clientId} to level {savedLevel}");
+                }
+            }
 
             Debug.Log($"[ConnectionHandler] Client {clientId} successfully respawned at {spawnPos}");
         }
@@ -143,6 +170,7 @@ public class ConnectionHandler : MonoBehaviour
     private void OnClientDisconnect(ulong clientId)
     {
         deathCounts.Remove(clientId);
+        savedLevels.Remove(clientId);
         Debug.Log($"[ConnectionHandler] Cleaned up data for Client {clientId}");
     }
 

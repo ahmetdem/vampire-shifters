@@ -16,9 +16,18 @@ public class WeaponController : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        base.OnNetworkSpawn();
+        
+        Debug.Log($"[WeaponController] OnNetworkSpawn called! IsServer={IsServer}, IsOwner={IsOwner}, ClientId={OwnerClientId}, startingWeapon={(startingWeapon != null ? startingWeapon.weaponName : "NULL")}");
+        
         if (IsServer && startingWeapon != null)
         {
+            Debug.Log($"[WeaponController] Adding starting weapon: {startingWeapon.weaponName}");
             AddWeapon(startingWeapon);
+        }
+        else if (IsServer && startingWeapon == null)
+        {
+            Debug.LogWarning("[WeaponController] startingWeapon is NULL on server! Check prefab configuration.");
         }
     }
 

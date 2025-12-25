@@ -125,6 +125,9 @@ public class BossEventDirector : NetworkBehaviour
         // 1. Logic runs only on Server
         if (!IsServer) return;
         isEventActive.Value = false;
+        
+        // Reset the timer so boss doesn't immediately respawn
+        currentTimer = 0f;
 
         Debug.Log(">>> BOSS DEFEATED! RETURNING TO FOREST <<<");
 

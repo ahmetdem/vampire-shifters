@@ -67,36 +67,42 @@ public class LeaderboardUI : MonoBehaviour
 
     private void UpdateLeaderboard()
     {
-        if (NetworkManager.Singleton == null || ConnectionHandler.Instance == null) return;
+        if (NetworkManager.Singleton == null) return;
 
         // 1. Collect Data
+        // NOTE: Use ConnectedClientsList directly - it works on both host AND client
+        // ConnectionHandler.GetAllConnectedClientIds() was server-only and returned empty on clients
         List<LeaderboardEntry> entries = new List<LeaderboardEntry>();
 
-        foreach (ulong clientId in ConnectionHandler.Instance.GetAllConnectedClientIds())
+        foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
         {
-            // Find player object
-            if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out NetworkClient client))
+            if (client.PlayerObject != null)
             {
-                if (client.PlayerObject != null)
+                // Get Components
+                var networkState = client.PlayerObject.GetComponent<PlayerNetworkState>();
+                var economy = client.PlayerObject.GetComponent<PlayerEconomy>();
+
+                string pName = networkState != null ? networkState.playerName.Value.ToString() : $"Player {client.ClientId}";
+                int pLevel = economy != null ? economy.currentLevel.Value : 1;
+                
+                // Death count is server-only data, use 0 on clients
+                // TODO: Could sync this via NetworkVariable if needed
+                int pDeaths = 0;
+                if (ConnectionHandler.Instance != null && NetworkManager.Singleton.IsServer)
                 {
-                    // Get Components
-                    var networkState = client.PlayerObject.GetComponent<PlayerNetworkState>();
-                    var economy = client.PlayerObject.GetComponent<PlayerEconomy>();
-
-                    string pName = networkState != null ? networkState.playerName.Value.ToString() : $"Player {clientId}";
-                    int pLevel = economy != null ? economy.currentLevel.Value : 1;
-                    int pDeaths = ConnectionHandler.Instance.GetDeathCount(clientId);
-                    bool isMe = (clientId == NetworkManager.Singleton.LocalClientId);
-
-                    entries.Add(new LeaderboardEntry
-                    {
-                        Rank = 0, // Assigned after sort
-                        Name = pName,
-                        Level = pLevel,
-                        Deaths = pDeaths,
-                        IsLocalPlayer = isMe
-                    });
+                    pDeaths = ConnectionHandler.Instance.GetDeathCount(client.ClientId);
                 }
+                
+                bool isMe = (client.ClientId == NetworkManager.Singleton.LocalClientId);
+
+                entries.Add(new LeaderboardEntry
+                {
+                    Rank = 0, // Assigned after sort
+                    Name = pName,
+                    Level = pLevel,
+                    Deaths = pDeaths,
+                    IsLocalPlayer = isMe
+                });
             }
         }
 
