@@ -155,6 +155,40 @@ public class BossEventDirector : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Called when a player dies during the boss event (killed by boss).
+    /// Resets the event and resumes normal enemy spawning.
+    /// </summary>
+    public void ResetBossEventOnPlayerDeath()
+    {
+        if (!IsServer) return;
+        
+        Debug.Log(">>> PLAYER DIED TO BOSS - RESETTING EVENT <<<");
+        
+        // Reset event state
+        isEventActive.Value = false;
+        currentTimer = 0f;
+        
+        // Resume normal enemy spawning
+        if (mainEnemySpawner != null)
+        {
+            mainEnemySpawner.StartSpawning();
+        }
+        
+        // Destroy any existing boss
+        BossHealth[] bosses = FindObjectsOfType<BossHealth>();
+        foreach (var boss in bosses)
+        {
+            if (boss.TryGetComponent(out NetworkObject netObj) && netObj.IsSpawned)
+            {
+                netObj.Despawn(true);
+            }
+        }
+        
+        // Reset camera for all clients
+        ResetCameraClientRpc();
+    }
+
     [ClientRpc]
     private void ReturnToForestClientRpc(Vector3 targetPos, ClientRpcParams clientRpcParams = default)
     {

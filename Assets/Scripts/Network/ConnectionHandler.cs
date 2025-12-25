@@ -86,10 +86,16 @@ public class ConnectionHandler : MonoBehaviour
 
         StartCoroutine(RespawnRoutine(clientId, delay));
 
-        // Reset any active event cameras
+        // Reset any active event cameras and resume normal gameplay if boss event was active
         if (BossEventDirector.Instance != null)
         {
             BossEventDirector.Instance.ResetCameraClientRpc();
+            
+            // If boss event was active (player died to boss), reset it and resume spawning
+            if (BossEventDirector.Instance.IsEventActive)
+            {
+                BossEventDirector.Instance.ResetBossEventOnPlayerDeath();
+            }
         }
 
         // Also reset PvP camera if player died in PvP arena
