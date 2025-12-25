@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -5,13 +6,21 @@ using UnityEngine.UI;
 
 public class LevelUpUI : MonoBehaviour
 {
-    public static LevelUpUI Instance; // Singleton so Player can find it easily
+    public static LevelUpUI Instance;
 
-    [Header("UI References")]
+    [Header("Main UI References")]
     [SerializeField] private GameObject panel;
+    [SerializeField] private CanvasGroup canvasGroup; // For fade animation
+    [SerializeField] private Image backdrop; // Dark overlay behind cards
+
+    [Header("Upgrade Cards")]
     [SerializeField] private Button[] optionButtons;
-    [SerializeField] private TextMeshProUGUI[] optionTexts;
-    // Optional: Add Image[] optionIcons if you want to show sprites
+    [SerializeField] private TextMeshProUGUI[] optionNameTexts;
+    [SerializeField] private TextMeshProUGUI[] optionDescTexts;
+
+    [Header("Animation Settings")]
+    [SerializeField] private float fadeInDuration = 0.3f;
+    [SerializeField] private float cardScaleStartSize = 0.8f;
 
     private WeaponController localPlayerController;
     private List<int> currentOptions = new List<int>();
@@ -19,7 +28,7 @@ public class LevelUpUI : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        panel.SetActive(false); // Hide on start
+        panel.SetActive(false);
     }
 
     public void ShowOptions(WeaponController controller)
@@ -27,16 +36,14 @@ public class LevelUpUI : MonoBehaviour
         localPlayerController = controller;
         currentOptions.Clear();
 
-        // 1. Create a list of all valid indices [0, 1, 2, 3...]
+        // 1. Create shuffled list of upgrade indices
         List<int> availableIndices = new List<int>();
         for (int i = 0; i < controller.allUpgradesPool.Count; i++)
         {
-            // Optional: You can add an "if" here to skip maxed-out weapons later
             availableIndices.Add(i);
         }
 
-        // 2. Shuffle the list (Fisher-Yates Shuffle)
-        // This ensures we pick unique items without duplicates
+        // Shuffle (Fisher-Yates)
         for (int i = 0; i < availableIndices.Count; i++)
         {
             int temp = availableIndices[i];
@@ -45,26 +52,31 @@ public class LevelUpUI : MonoBehaviour
             availableIndices[randomIndex] = temp;
         }
 
-        // 3. Assign Buttons
+        // 2. Assign buttons
         for (int i = 0; i < optionButtons.Length; i++)
         {
-            // If we ran out of upgrades (e.g. only have 2 items but 3 buttons), hide the button
             if (i >= availableIndices.Count)
             {
                 optionButtons[i].gameObject.SetActive(false);
                 continue;
             }
 
-            // Otherwise, show the button
             optionButtons[i].gameObject.SetActive(true);
 
-            int pickedIndex = availableIndices[i]; // Pick from the shuffled list
+            int pickedIndex = availableIndices[i];
             UpgradeData data = controller.allUpgradesPool[pickedIndex];
 
-            // Update Text
-            optionTexts[i].text = $"{data.upgradeName}\n<size=60%>{data.description}</size>";
+            // Update name and description texts
+            if (optionNameTexts != null && i < optionNameTexts.Length && optionNameTexts[i] != null)
+            {
+                optionNameTexts[i].text = data.upgradeName;
+            }
+            if (optionDescTexts != null && i < optionDescTexts.Length && optionDescTexts[i] != null)
+            {
+                optionDescTexts[i].text = data.description;
+            }
 
-            // Setup Click Listener
+            // Setup click listener
             int indexToSend = pickedIndex;
             optionButtons[i].onClick.RemoveAllListeners();
             optionButtons[i].onClick.AddListener(() => SelectUpgrade(indexToSend));
@@ -72,25 +84,72 @@ public class LevelUpUI : MonoBehaviour
 
         panel.SetActive(true);
         SetPlayerInput(false);
+
+        // Start fade-in animation
+        StartCoroutine(FadeInAnimation());
+    }
+
+    private IEnumerator FadeInAnimation()
+    {
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0f;
+            float elapsed = 0f;
+            
+            while (elapsed < fadeInDuration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                canvasGroup.alpha = Mathf.Lerp(0f, 1f, elapsed / fadeInDuration);
+                yield return null;
+            }
+            canvasGroup.alpha = 1f;
+        }
+
+        // Animate cards scaling up
+        foreach (var button in optionButtons)
+        {
+            if (button != null && button.gameObject.activeSelf)
+            {
+                StartCoroutine(ScaleUpCard(button.transform));
+            }
+        }
+    }
+
+    private IEnumerator ScaleUpCard(Transform card)
+    {
+        card.localScale = Vector3.one * cardScaleStartSize;
+        float elapsed = 0f;
+        float duration = fadeInDuration * 0.5f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = elapsed / duration;
+            // Ease out bounce effect
+            t = 1f - Mathf.Pow(1f - t, 3f);
+            card.localScale = Vector3.Lerp(Vector3.one * cardScaleStartSize, Vector3.one, t);
+            yield return null;
+        }
+        card.localScale = Vector3.one;
     }
 
     private void SelectUpgrade(int weaponIndex)
     {
-        // 4. Send request to Server
         if (localPlayerController != null)
         {
             localPlayerController.RequestUnlockWeaponServerRpc(weaponIndex);
         }
 
-        // 5. Hide Panel
         panel.SetActive(false);
         SetPlayerInput(true);
     }
 
     private void SetPlayerInput(bool enabled)
     {
-        // This looks for your local player's movement and stops it
-        if (localPlayerController.TryGetComponent(out PlayerMovement move)) move.enabled = enabled;
-        localPlayerController.enabled = enabled; // Stops the WeaponController from firing
+        if (localPlayerController == null) return;
+        
+        if (localPlayerController.TryGetComponent(out PlayerMovement move)) 
+            move.enabled = enabled;
+        localPlayerController.enabled = enabled;
     }
 }
