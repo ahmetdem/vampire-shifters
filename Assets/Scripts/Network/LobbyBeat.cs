@@ -44,27 +44,34 @@ public class LobbyBeat : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        DeleteLobby();
+        // Quest 8: Clean shutdown - delete lobby when host closes the game
+        DeleteLobbySync();
     }
 
     private void OnDestroy()
     {
-        DeleteLobby();
+        // Also try to clean up if this component is destroyed
+        DeleteLobbySync();
     }
 
-    private async void DeleteLobby()
+    /// <summary>
+    /// Synchronously attempts to delete the lobby. Used during app quit.
+    /// Note: Async operations during OnApplicationQuit are unreliable.
+    /// </summary>
+    private void DeleteLobbySync()
     {
         if (string.IsNullOrEmpty(_lobbyId)) return;
-
+        
         try
         {
-            await LobbyService.Instance.DeleteLobbyAsync(_lobbyId);
-            Debug.Log($"[LobbyBeat] Lobby {_lobbyId} deleted successfully.");
+            // Fire and forget - we can't await during quit
+            _ = LobbyService.Instance.DeleteLobbyAsync(_lobbyId);
+            Debug.Log($"[LobbyBeat] Requested lobby deletion: {_lobbyId}");
             _lobbyId = null; // Prevent double-delete
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[LobbyBeat] Failed to delete lobby: {e.Message}");
+            Debug.LogWarning($"[LobbyBeat] Failed to delete lobby on quit: {e.Message}");
         }
     }
 
