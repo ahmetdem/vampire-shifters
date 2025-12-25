@@ -246,6 +246,49 @@ public class PvPDirector : NetworkBehaviour
     }
 
     /// <summary>
+    /// Called when a player dies during PvP event.
+    /// Resets the event and resumes normal enemy spawning.
+    /// </summary>
+    public void ResetPvPEventOnPlayerDeath()
+    {
+        if (!IsServer) return;
+        
+        Debug.Log(">>> PLAYER DIED IN PVP - RESETTING EVENT <<<");
+        
+        // Reset event state
+        IsPvPActive.Value = false;
+        timerActive = true;
+        matchTimer = 0f;
+        
+        // Resume normal enemy spawning
+        if (mainEnemySpawner != null)
+        {
+            mainEnemySpawner.StartSpawning();
+        }
+        
+        // Teleport remaining players back to forest
+        foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
+        {
+            if (client.PlayerObject == null) continue;
+
+            Vector3 forestPos = Vector3.zero;
+            if (ConnectionHandler.Instance != null)
+            {
+                forestPos = ConnectionHandler.Instance.GetRandomSpawnPosition();
+            }
+
+            ClientRpcParams clientParams = new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams { TargetClientIds = new ulong[] { client.ClientId } }
+            };
+
+            ReturnToForestClientRpc(forestPos, clientParams);
+        }
+        
+        Debug.Log("[PvP] Event reset after player death. Forest gameplay resumed!");
+    }
+
+    /// <summary>
     /// Resets the PvP camera for a specific client (e.g., when they die during PvP).
     /// </summary>
     [ClientRpc]

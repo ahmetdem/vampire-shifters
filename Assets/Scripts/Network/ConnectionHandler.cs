@@ -98,10 +98,16 @@ public class ConnectionHandler : MonoBehaviour
             }
         }
 
-        // Also reset PvP camera if player died in PvP arena
+        // Also reset PvP if player died in PvP arena
         if (PvPDirector.Instance != null)
         {
             PvPDirector.Instance.ResetPvPCameraForClientRpc(clientId);
+            
+            // If PvP was active (player died in PvP), reset it and resume spawning
+            if (PvPDirector.Instance.IsPvPActive.Value)
+            {
+                PvPDirector.Instance.ResetPvPEventOnPlayerDeath();
+            }
         }
     }
 
