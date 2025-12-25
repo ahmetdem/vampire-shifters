@@ -3,11 +3,12 @@ using UnityEngine;
 
 public class Health : NetworkBehaviour
 {
-    [SerializeField] private int maxHealth = 100;
+    [SerializeField] private int initialMaxHealth = 100;
     public NetworkVariable<int> currentHealth = new NetworkVariable<int>(100);
+    public NetworkVariable<int> maxHealth = new NetworkVariable<int>(100);
     
     // Getter for UI to access max health
-    public int MaxHealth => maxHealth;
+    public int MaxHealth => maxHealth.Value;
 
     // Flash state tracking
     private Coroutine _flashCoroutine;
@@ -18,8 +19,9 @@ public class Health : NetworkBehaviour
     {
         if (IsServer)
         {
-            // FORCE the network variable to match the Inspector setting
-            currentHealth.Value = maxHealth;
+            // FORCE the network variables to match the Inspector setting
+            maxHealth.Value = initialMaxHealth;
+            currentHealth.Value = initialMaxHealth;
         }
     }
 
@@ -116,14 +118,14 @@ public class Health : NetworkBehaviour
         if (!IsServer) return;
 
         // Use the variable name defined above
-        currentHealth.Value = Mathf.Clamp(currentHealth.Value + amount, 0, maxHealth);
+        currentHealth.Value = Mathf.Clamp(currentHealth.Value + amount, 0, maxHealth.Value);
     }
 
     public void IncreaseMaxHealth(int amount)
     {
         if (!IsServer) return;
 
-        maxHealth += amount;
+        maxHealth.Value += amount;
         currentHealth.Value += amount;
     }
 
@@ -133,6 +135,6 @@ public class Health : NetworkBehaviour
     public void ResetHealth()
     {
         if (!IsServer) return;
-        currentHealth.Value = maxHealth;
+        currentHealth.Value = maxHealth.Value;
     }
 }

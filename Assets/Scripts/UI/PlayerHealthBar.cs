@@ -69,8 +69,9 @@ public class PlayerHealthBar : MonoBehaviour
         
         if (playerHealth != null)
         {
-            // Subscribe to health changes
+            // Subscribe to health and max health changes
             playerHealth.currentHealth.OnValueChanged += OnHealthChanged;
+            playerHealth.maxHealth.OnValueChanged += OnMaxHealthChanged;
             
             // Initialize with current values using the MaxHealth getter
             maxHealth = playerHealth.MaxHealth;
@@ -79,6 +80,13 @@ public class PlayerHealthBar : MonoBehaviour
             
             Debug.Log($"[PlayerHealthBar] Found local player health! HP: {displayedHealth}/{maxHealth}");
         }
+    }
+    
+    private void OnMaxHealthChanged(int previousValue, int newValue)
+    {
+        maxHealth = newValue;
+        // Recalculate fill based on new max health
+        targetFill = maxHealth > 0 ? (float)playerHealth.currentHealth.Value / maxHealth : 0f;
     }
     
     private void OnHealthChanged(int previousValue, int newValue)
@@ -99,6 +107,7 @@ public class PlayerHealthBar : MonoBehaviour
         if (playerHealth != null)
         {
             playerHealth.currentHealth.OnValueChanged -= OnHealthChanged;
+            playerHealth.maxHealth.OnValueChanged -= OnMaxHealthChanged;
         }
     }
 }
