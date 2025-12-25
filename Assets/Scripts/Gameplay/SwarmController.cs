@@ -15,9 +15,6 @@ public class SwarmController : NetworkBehaviour
     private int damageAmount; // Actual damage after scaling
 
     public NetworkVariable<float> difficultyMultiplier = new NetworkVariable<float>(1.0f);
-    
-    // Synced minion count for visuals - ensures all clients see same number of minions
-    public NetworkVariable<int> syncedMinionCount = new NetworkVariable<int>(1);
 
     [Header("Despawn Settings")]
     [Tooltip("Despawn if further than this from ALL players")]
@@ -53,8 +50,10 @@ public class SwarmController : NetworkBehaviour
     {
         if (currentSpeed == 0) currentSpeed = baseSpeed;
 
-        // NOTE: Minion count is now synced via syncedMinionCount NetworkVariable
-        // SwarmVisuals reads this value directly in its Start() coroutine
+        if (TryGetComponent(out SwarmVisuals visuals))
+        {
+            visuals.SetSwarmDensity(difficultyMultiplier.Value);
+        }
 
         // Subscribe to health changes for visual feedback (client-only effect)
         if (TryGetComponent(out Health health))
@@ -127,13 +126,10 @@ public class SwarmController : NetworkBehaviour
             loot.SetLootMultiplier(difficulty);
         }
 
-        // 4. Update Visuals - Server calculates minion count and syncs to all clients
+        // 4. Update Visuals
         if (TryGetComponent(out SwarmVisuals visuals))
         {
-            // Calculate minion count based on difficulty (clamped 1-10)
-            int baseCount = visuals.GetBaseSwarmCount();
-            int scaledCount = Mathf.RoundToInt(baseCount * difficulty);
-            syncedMinionCount.Value = Mathf.Clamp(scaledCount, 1, 10);
+            visuals.SetSwarmDensity(difficulty);
         }
 
         // 5. Hit Harder: Damage scales with difficulty (20% per level) + wave multiplier
