@@ -11,8 +11,10 @@ public class ConnectionHandler : MonoBehaviour
     private Dictionary<ulong, string> clientNames = new Dictionary<ulong, string>();
     private Dictionary<ulong, int> deathCounts = new Dictionary<ulong, int>();
     private Dictionary<ulong, int> savedLevels = new Dictionary<ulong, int>(); // Persist levels across respawns
+    private Dictionary<ulong, List<int>> savedUpgrades = new Dictionary<ulong, List<int>>(); // Persist upgrades across respawns
     
     private const int MAX_LEVEL_PENALTY = 10;
+    private const int MAX_UPGRADE_PENALTY = 10;
 
     [Header("Spawn Settings")]
     [Tooltip("Radius around center (0,0) where players can spawn")]
@@ -41,17 +43,41 @@ public class ConnectionHandler : MonoBehaviour
 
         // Save player's level with penalty (max 10 levels lost)
         int levelToSave = 1;
+        List<int> upgradesToSave = new List<int>();
+        
         if (NetworkManager.Singleton.ConnectedClients.TryGetValue(clientId, out var client))
         {
-            if (client.PlayerObject != null && client.PlayerObject.TryGetComponent(out PlayerEconomy economy))
+            if (client.PlayerObject != null)
             {
-                int currentLevel = economy.currentLevel.Value;
-                int penalty = Mathf.Min(currentLevel - 1, MAX_LEVEL_PENALTY); // Can't go below level 1
-                levelToSave = currentLevel - penalty;
-                Debug.Log($"[ConnectionHandler] Client {clientId} lost {penalty} levels. Saved level: {levelToSave}");
+                // Save level with penalty
+                if (client.PlayerObject.TryGetComponent(out PlayerEconomy economy))
+                {
+                    int currentLevel = economy.currentLevel.Value;
+                    int penalty = Mathf.Min(currentLevel - 1, MAX_LEVEL_PENALTY); // Can't go below level 1
+                    levelToSave = currentLevel - penalty;
+                    Debug.Log($"[ConnectionHandler] Client {clientId} lost {penalty} levels. Saved level: {levelToSave}");
+                }
+                
+                // Save upgrades with penalty (lose up to 10 random upgrades)
+                if (client.PlayerObject.TryGetComponent(out WeaponController weaponController))
+                {
+                    List<int> allUpgrades = weaponController.GetAppliedUpgradeHistory();
+                    int upgradePenalty = Mathf.Min(allUpgrades.Count, MAX_UPGRADE_PENALTY);
+                    
+                    // Remove random upgrades
+                    for (int i = 0; i < upgradePenalty && allUpgrades.Count > 0; i++)
+                    {
+                        int randomIndex = Random.Range(0, allUpgrades.Count);
+                        allUpgrades.RemoveAt(randomIndex);
+                    }
+                    
+                    upgradesToSave = allUpgrades;
+                    Debug.Log($"[ConnectionHandler] Client {clientId} lost {upgradePenalty} upgrades. Saved {upgradesToSave.Count} upgrades.");
+                }
             }
         }
         savedLevels[clientId] = levelToSave;
+        savedUpgrades[clientId] = upgradesToSave;
 
         // Quest 12: Respawn timer increases with every death
         float delay = 2.0f + (deathCounts[clientId] * 1.5f);
@@ -93,6 +119,15 @@ public class ConnectionHandler : MonoBehaviour
                 {
                     economy.currentLevel.Value = savedLevel;
                     Debug.Log($"[ConnectionHandler] Restored Client {clientId} to level {savedLevel}");
+                }
+            }
+            
+            // Restore saved upgrades (with death penalty already applied)
+            if (savedUpgrades.TryGetValue(clientId, out List<int> upgrades) && upgrades.Count > 0)
+            {
+                if (newPlayer.TryGetComponent(out WeaponController weaponController))
+                {
+                    weaponController.RestoreUpgrades(upgrades);
                 }
             }
 
@@ -171,6 +206,7 @@ public class ConnectionHandler : MonoBehaviour
     {
         deathCounts.Remove(clientId);
         savedLevels.Remove(clientId);
+        savedUpgrades.Remove(clientId);
         Debug.Log($"[ConnectionHandler] Cleaned up data for Client {clientId}");
     }
 
