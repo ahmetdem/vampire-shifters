@@ -86,10 +86,10 @@ public class ConnectionHandler : MonoBehaviour
 
         StartCoroutine(RespawnRoutine(clientId, delay));
 
-        // Reset any active event cameras and resume normal gameplay if boss event was active
+        // Reset only the dead player's camera - don't affect other players who may still be fighting
         if (BossEventDirector.Instance != null)
         {
-            BossEventDirector.Instance.ResetCameraClientRpc();
+            BossEventDirector.Instance.ResetCameraForClientRpc(clientId);
             
             // If boss event was active (player died to boss), reset it and resume spawning
             if (BossEventDirector.Instance.IsEventActive)
@@ -122,7 +122,8 @@ public class ConnectionHandler : MonoBehaviour
             GameObject playerPrefab = NetworkManager.Singleton.NetworkConfig.PlayerPrefab;
 
             GameObject newPlayer = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
-            newPlayer.GetComponent<NetworkObject>().SpawnAsPlayerObject(clientId);
+            NetworkObject netObj = newPlayer.GetComponent<NetworkObject>();
+            netObj.SpawnAsPlayerObject(clientId);
 
             // Restore saved level (with death penalty already applied)
             if (savedLevels.TryGetValue(clientId, out int savedLevel) && savedLevel > 1)
@@ -144,6 +145,15 @@ public class ConnectionHandler : MonoBehaviour
             }
 
             Debug.Log($"[ConnectionHandler] Client {clientId} successfully respawned at {spawnPos}");
+            
+            // CRITICAL: Explicitly teleport the client to the spawn position
+            // This is needed because ClientNetworkTransform uses client authority,
+            // so the server-set position may not propagate correctly on spawn
+            // Use BossEventDirector as it's a NetworkBehaviour and can send ClientRpcs
+            if (BossEventDirector.Instance != null)
+            {
+                BossEventDirector.Instance.TeleportPlayerToForestRpc(clientId, spawnPos);
+            }
         }
     }
 

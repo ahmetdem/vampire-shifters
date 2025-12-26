@@ -121,6 +121,73 @@ public class BossEventDirector : NetworkBehaviour
         }
     }
 
+    /// <summary>
+    /// Resets the boss camera for a specific client only (e.g., when they die during boss fight).
+    /// Other clients who are still alive will keep fighting the boss.
+    /// </summary>
+    [ClientRpc]
+    public void ResetCameraForClientRpc(ulong clientId)
+    {
+        // Only the dead player should reset their camera
+        if (NetworkManager.Singleton.LocalClientId != clientId) return;
+
+        if (bossArenaCamera != null)
+        {
+            bossArenaCamera.Priority = 0; // Reset priority
+            bossArenaCamera.gameObject.SetActive(false);
+            Debug.Log($"[BossEventDirector] Camera reset for dead player {clientId}");
+        }
+    }
+
+    /// <summary>
+    /// Teleports a specific player to the forest.
+    /// Called from ConnectionHandler after respawning a player to ensure proper position sync.
+    /// </summary>
+    public void TeleportPlayerToForestRpc(ulong clientId, Vector3 targetPos)
+    {
+        if (!IsServer) return;
+        
+        ClientRpcParams clientRpcParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = new ulong[] { clientId }
+            }
+        };
+
+        TeleportPlayerClientRpc(targetPos, clientRpcParams);
+    }
+
+    [ClientRpc]
+    private void TeleportPlayerClientRpc(Vector3 position, ClientRpcParams clientRpcParams = default)
+    {
+        // Reset any arena cameras first
+        if (bossArenaCamera != null)
+        {
+            bossArenaCamera.Priority = 0;
+            bossArenaCamera.gameObject.SetActive(false);
+        }
+
+        if (PvPDirector.Instance != null)
+        {
+            PvPDirector.Instance.DisablePvPCamera();
+        }
+
+        // Teleport the player
+        if (NetworkManager.Singleton.LocalClient?.PlayerObject != null)
+        {
+            var player = NetworkManager.Singleton.LocalClient.PlayerObject;
+            
+            if (player.TryGetComponent(out Rigidbody2D rb))
+            {
+                rb.velocity = Vector2.zero;
+            }
+            
+            player.transform.position = position;
+            Debug.Log($"[BossEventDirector] Player teleported to respawn position: {position}");
+        }
+    }
+
     public void OnBossDefeated()
     {
         // 1. Logic runs only on Server
@@ -159,6 +226,7 @@ public class BossEventDirector : NetworkBehaviour
     /// <summary>
     /// Called when a player dies during the boss event (killed by boss).
     /// Resets the event and resumes normal enemy spawning.
+    /// Teleports all surviving players back to the forest.
     /// </summary>
     public void ResetBossEventOnPlayerDeath()
     {
@@ -189,8 +257,27 @@ public class BossEventDirector : NetworkBehaviour
             }
         }
         
-        // Reset camera for all clients
-        ResetCameraClientRpc();
+        // Teleport all surviving players back to the forest
+        // (The dead player will respawn via RespawnRoutine)
+        foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
+        {
+            // Skip if player object doesn't exist (they're respawning via RespawnRoutine)
+            if (client.PlayerObject == null) continue;
+
+            // Server calculates a random spot for this specific player
+            Vector3 targetPos = ConnectionHandler.Instance.GetRandomSpawnPosition();
+
+            // Server whispers to this client: "Go to this specific spot"
+            ClientRpcParams clientRpcParams = new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams
+                {
+                    TargetClientIds = new ulong[] { client.ClientId }
+                }
+            };
+
+            ReturnToForestClientRpc(targetPos, clientRpcParams);
+        }
     }
 
     [ClientRpc]
