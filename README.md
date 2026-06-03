@@ -4,6 +4,10 @@ This game was made as (obviously) vampire survivors in mind (very nice game) as 
 
 We wanted to combine the addictive gameplay of vampire survivors into multiplayer and fun-with-friends nature of games; with PVP, PVE and single player features in mind. 
 
+## Demo
+
+<video src="https://github.com/ahmetdem/vampire-shifters/raw/main/vampire.mp4" controls></video>
+
 The game is mostly vibe-coded, and uses Unity Relay and Lobby features for networking, i think it could be a fun little game for exploring.
 
 Vampire Shifters was made with scaling in mind so scriptable objects and lots of parameters for balancing.  
