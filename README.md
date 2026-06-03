@@ -6,7 +6,7 @@ We wanted to combine the addictive gameplay of vampire survivors into multiplaye
 
 ## Demo
 
-<video src="https://github.com/ahmetdem/vampire-shifters/raw/main/vampire.mp4" controls></video>
+https://github.com/user-attachments/assets/945a7e2b-5f32-49ab-b64f-7a94935e21d4
 
 The game is mostly vibe-coded, and uses Unity Relay and Lobby features for networking, i think it could be a fun little game for exploring.
 
