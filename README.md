@@ -8,7 +8,7 @@ We wanted to combine the addictive gameplay of vampire survivors into multiplaye
 
 https://github.com/user-attachments/assets/945a7e2b-5f32-49ab-b64f-7a94935e21d4
 
-The game is mostly vibe-coded, and uses Unity Relay and Lobby features for networking, i think it could be a fun little game for exploring.
+The game uses Unity Relay and Lobby features for networking, i think it could be a fun little game for exploring.
 
 Vampire Shifters was made with scaling in mind so scriptable objects and lots of parameters for balancing.  
 
